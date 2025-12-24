@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命与苦海 | 姜哥认知备忘录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0c10;
+            --bg-secondary: #0f1218;
+            --bg-tertiary: #151a22;
+            --bg-card: #181c24;
+            --text-primary: #e8e8ec;
+            --text-secondary: #9898a4;
+            --text-muted: #5c5c68;
+            --accent: #7c9a92;
+            --accent-light: #a8c4bc;
+            --accent-dim: rgba(124, 154, 146, 0.15);
+            --border: #252a34;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.95;
+            font-size: 17px;
+            overflow-x: hidden;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(10, 12, 16, 0.95), transparent);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .nav.scrolled {
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 16px 48px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .chapter-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        /* TOC Sidebar */
+        .toc-sidebar {
+            position: fixed;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toc-sidebar.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .toc-item {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .toc-item::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-10px);
+            white-space: nowrap;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: all 0.3s ease;
+            background: var(--bg-card);
+            padding: 6px 14px;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .toc-item:hover::before {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .toc-item.active {
+            background: var(--accent);
+            transform: scale(1.4);
+            border-color: var(--accent-light);
+            box-shadow: 0 0 20px rgba(124, 154, 146, 0.4);
+        }
+
+        .toc-item:hover {
+            background: var(--accent-light);
+            transform: scale(1.3);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 140px 48px;
+            background: radial-gradient(ellipse at center, var(--bg-secondary) 0%, var(--bg-primary) 70%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(124, 154, 146, 0.03) 0%, transparent 50%);
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .hero-subtitle {
+            font-size: 13px;
+            letter-spacing: 5px;
+            color: var(--accent);
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeUp 1s ease forwards 0.3s;
+        }
+
+        .hero-title {
+            font-size: clamp(36px, 7vw, 72px);
+            font-weight: 300;
+            letter-spacing: -2px;
+            line-height: 1.2;
+            margin-bottom: 32px;
+            opacity: 0;
+            animation: fadeUp 1s ease forwards 0.5s;
+            position: relative;
+        }
+
+        .hero-title .accent {
+            color: var(--accent);
+            font-weight: 500;
+            display: inline-block;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .hero-quote {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 700px;
+            line-height: 1.8;
+            font-style: italic;
+            opacity: 0;
+            animation: fadeUp 1s ease forwards 0.7s;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-size: 11px;
+            letter-spacing: 3px;
+            opacity: 0;
+            animation: fadeUp 1s ease forwards 1s, bounce 2s ease infinite 2s;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* Content Section */
+        section {
+            padding: 100px 48px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .section-intro {
+            text-align: center;
+            margin-bottom: 80px;
+            padding: 60px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-intro::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: scaleX(0);
+            transition: transform 0.8s ease 0.3s;
+        }
+
+        .section-intro.visible::before {
+            transform: scaleX(1);
+        }
+
+        .section-intro.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-intro p {
+            font-size: 26px;
+            font-weight: 300;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .section-intro .attribution {
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Chapter Title */
+        .chapter-header {
+            margin-bottom: 48px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chapter-header.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .chapter-number {
+            font-size: 12px;
+            color: var(--accent);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--accent-light);
+        }
+
+        /* Core Message Card */
+        .message-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 48px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .message-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+            transform: translateY(-4px);
+        }
+
+        .message-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .message-card.expanded {
+            border-color: var(--accent-light);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .message-quote {
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+            padding-left: 24px;
+            border-left: 3px solid var(--accent);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .message-card:hover .message-quote {
+            border-left-color: var(--accent-light);
+            padding-left: 32px;
+        }
+
+        .expand-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .expand-hint::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message-card.expanded .expand-hint::after {
+            transform: rotate(180deg);
+        }
+
+        .message-card.expanded .expand-hint {
+            color: var(--accent);
+        }
+
+        /* Expansion Content */
+        .expansion {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+            opacity: 0;
+        }
+
+        .message-card.expanded .expansion {
+            max-height: 2000px;
+            opacity: 1;
+            margin-top: 24px;
+        }
+
+        .expansion h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .expansion h4:hover {
+            color: var(--accent-light);
+        }
+
+        .expansion h4::before {
+            content: '→';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .expansion h4:hover::before {
+            transform: translateX(4px);
+        }
+
+        .expansion p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+            margin-bottom: 16px;
+        }
+
+        .expansion ul {
+            list-style: none;
+            margin-left: 24px;
+        }
+
+        .expansion li {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .expansion li::before {
+            content: '·';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-size: 18px;
+            line-height: 1.5;
+            transition: transform 0.3s ease;
+        }
+
+        .expansion li:hover::before {
+            transform: scale(1.5);
+        }
+
+        .expansion li:hover {
+            color: var(--text-primary);
+        }
+
+        .message-card.expanded .expansion strong {
+            color: var(--accent-light);
+            transition: color 0.3s ease;
+        }
+
+        /* Contrast Section */
+        .contrast-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 48px 0;
+        }
+
+        .contrast-card {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contrast-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .contrast-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .contrast-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .contrast-card.negative::after {
+            background: #c99090;
+            transform: scaleY(0);
+        }
+
+        .contrast-card.positive::after {
+            background: #90c9a8;
+            transform: scaleY(0);
+        }
+
+        .contrast-card:hover::after {
+            transform: scaleY(1);
+        }
+
+        .contrast-card.negative {
+            border-color: rgba(180, 100, 100, 0.3);
+        }
+
+        .contrast-card.negative:hover {
+            border-color: rgba(180, 100, 100, 0.6);
+        }
+
+        .contrast-card.positive {
+            border-color: rgba(100, 180, 140, 0.3);
+        }
+
+        .contrast-card.positive:hover {
+            border-color: rgba(100, 180, 140, 0.6);
+        }
+
+        .contrast-label {
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        .contrast-card.negative .contrast-label {
+            color: #c99090;
+        }
+
+        .contrast-card.positive .contrast-label {
+            color: #90c9a8;
+        }
+
+        .contrast-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .contrast-card:hover .contrast-content {
+            color: var(--text-primary);
+        }
+
+        /* 4 Powers Section */
+        .powers-section {
+            background: var(--bg-secondary);
+            padding: 100px 48px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .powers-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .power-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(30px);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .power-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .power-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .power-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .power-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .power-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .power-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--accent-light);
+            margin-bottom: 12px;
+        }
+
+        .power-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .power-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .tag {
+            font-size: 12px;
+            padding: 4px 10px;
+            background: var(--accent-dim);
+            color: var(--accent-light);
+            border-radius: 4px;
+        }
+
+        /* Life Stages */
+        .stages-section {
+            background: var(--bg-primary);
+            padding: 100px 48px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .stages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .stage-item {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 32px;
+            padding: 32px 0;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stage-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .stage-item:last-child {
+            border-bottom: none;
+        }
+
+        .stage-number {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--accent-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-align: center;
+            height: fit-content;
+            transition: all 0.3s ease;
+        }
+
+        .stage-item:hover .stage-number {
+            background: var(--accent);
+            color: var(--bg-primary);
+            transform: scale(1.05);
+        }
+
+        .stage-content h4 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        .stage-item:hover .stage-content h4 {
+            color: var(--accent-light);
+        }
+
+        .stage-content p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .stage-item:hover .stage-content p {
+            color: var(--text-primary);
+        }
+
+        .stage-insight {
+            font-size: 14px;
+            color: var(--accent-light);
+            padding: 12px 16px;
+            background: var(--accent-dim);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .stage-item:hover .stage-insight {
+            background: rgba(124, 154, 146, 0.2);
+        }
+
+        /* Footer Quote */
+        .footer-quote {
+            text-align: center;
+            padding: 120px 48px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-quote p {
+            font-size: 28px;
+            font-weight: 300;
+            line-height: 1.6;
+            color: var(--accent-light);
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-quote p.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .footer-quote .note {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+        }
+
+        .footer-quote .note.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 60px 48px;
+            border-top: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .footer.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            transform: translateY(-6px) scale(1.1);
+            box-shadow: 0 10px 30px rgba(124, 154, 146, 0.3);
+        }
+
+        /* Quote Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .message-card:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            color: var(--accent);
+            transform: scale(1.2);
+            background: var(--accent-dim);
+        }
+
+        .copy-btn.copied {
+            color: #4a9d7c;
+        }
+
+        .copy-btn.copied:hover {
+            background: rgba(74, 157, 124, 0.2);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .toc-sidebar { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .nav { padding: 16px 24px; }
+            section { padding: 60px 24px; }
+            .hero { padding: 100px 24px; }
+            .contrast-grid { grid-template-columns: 1fr; }
+            .powers-grid { grid-template-columns: repeat(2, 1fr); }
+            .stage-item { grid-template-columns: 1fr; gap: 16px; }
+            .stage-number { width: fit-content; }
+            .footer-quote p { font-size: 22px; }
+            .back-to-top { bottom: 20px; right: 20px; width: 44px; height: 44px; }
+        }
+
+        @media (max-width: 480px) {
+            .powers-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">已复制到剪贴板</div>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="logo" onclick="scrollToTop()">给世界的礼物</div>
+        <div class="chapter-label">命与苦海 · 地形图</div>
+    </nav>
+
+    <!-- TOC Sidebar -->
+    <aside class="toc-sidebar" id="tocSidebar">
+        <ul class="toc-list">
+            <li class="toc-item active" data-label="核心概念" data-target="#core"></li>
+            <li class="toc-item" data-label="命与线" data-target="#line"></li>
+            <li class="toc-item" data-label="人生阶段" data-target="#stages"></li>
+            <li class="toc-item" data-label="苦与苦海" data-target="#suffering"></li>
+            <li class="toc-item" data-label="四种能力" data-target="#powers"></li>
+            <li class="toc-item" data-label="命的本质" data-target="#nature"></li>
+        </ul>
+    </aside>
+
+    <!-- Hero -->
+    <section class="hero">
+        <p class="hero-subtitle">把命撞碎之后</p>
+        <h1 class="hero-title">命与<span class="accent">苦海</span></h1>
+        <p class="hero-quote">
+            是我从溺水中爬上岸后，看见的地形图。<br>
+            苦，是事件；苦海，是系统。
+        </p>
+        <div class="scroll-hint">SCROLL TO READ</div>
+    </section>
+
+    <!-- Chapter 0: Core Distinction -->
+    <section id="core">
+        <div class="chapter-header">
+            <div class="chapter-number">CORE CONCEPT</div>
+            <h2 class="chapter-title">命与苦海的本质区别</h2>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '苦，是事件；苦海，是系统。苦，是当下；苦海，是命运。苦，是疼；苦海，是溺水。苦，可以忍；苦海，无法逃。')">📋</span>
+            <p class="message-quote">苦，是事件；苦海，是系统。<br>苦，是当下；苦海，是命运。<br>苦，是疼；苦海，是溺水。<br>苦，可以忍；苦海，无法逃。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>"苦，是事件"</strong>：一次失败、一场疾病、一次背叛——这些都是具体的事件。它们有明确的开始和结束，有清晰的因果关系。事件的伤害是可以评估和处理的。</p>
+                <p><strong>"苦海，是系统"</strong>：系统是无形的、由无数因素交织而成的困境。它不是某一件坏事，而是"所有坏事都在这个结构里发生"的困局。系统的可怕在于，你解决了一个问题，还会有下一个、下下一个。</p>
+                <p><strong>"苦，是当下"</strong>：疼痛是此刻的感受，是可以直接面对的。你可以哭、可以喊、可以处理伤口。</p>
+                <p><strong>"苦海，是命运"</strong>：命运是过去的积累在当下的显现，是未来的预演。当你意识到某些苦难不是偶然，而是必然的重复时，那才是真正进入苦海的时刻。</p>
+                <p><strong>"苦，是疼"</strong>：疼是信号，告诉你"这里有问题"。疼痛是有意义的，它让你知道需要采取行动。</p>
+                <p><strong>"苦海，是溺水"</strong>：溺水是失去呼吸的能力，是无法呼救的绝望。苦海不是某一种具体的苦难，而是"无论怎么努力都无法改变困境"的无力感。</p>
+                <p><strong>"苦，可以忍"</strong>：面对事件，你有你忍辱负重、卧薪尝齿的能力。只要你能承受，你就还有翻盘的可能。</p>
+                <p><strong>"苦海，无法逃"</strong>：系统的牢笼不是靠忍就能突破的。你需要的是结构的改变、路径的转换，不是咬牙坚持。</p>
+            </div>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '风不是灾难，没有伞的人才遭殃。雨不是惩罚，没有屋顶的人才被淋透。真正的痛不是痛本身，是你根本没能力接住它。')">📋</span>
+            <p class="message-quote">风不是灾难，没有伞的人才遭殃。<br>雨不是惩罚，没有屋顶的人才被淋透。<br>真正的痛不是痛本身，是你根本没能力接住它。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>风不是灾难</strong>：同样的环境变化，对不同人的影响是不同的。有伞的人看到的是风景，没伞的人看到的是灾难。问题不在于"风"，在于"你有没有伞"。</p>
+                <p><strong>雨不是惩罚</strong>：把外部环境定义为"惩罚"是一种受害者心态，会让你陷入无力感。更好的理解是：雨就是雨，它对所有人都是公平的，不公平的是你有没有准备。</p>
+                <p><strong>真正的痛</strong>：这句话揭示了苦难的本质——不是发生了什么，而是你能不能接住。接不住，一件小事也会变成灭顶之灾；接得住，大风大浪也能化险为夷。</p>
+                <p><strong>能力 vs 事件</strong>：苦海不是事件的堆积，而是能力的缺失与事件的碰撞。当你的能力不足以应对生活的挑战时，任何事件都可能把你拖入苦海。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 1: Line vs Surface -->
+    <section id="line">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 01</div>
+            <h2 class="chapter-title">命是线，苦海是面</h2>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '命，是你背负的线性职责。苦海，是你失去承载力后形成的系统性吞噬。')">📋</span>
+            <p class="message-quote">命，是你背负的线性职责。<br>苦海，是你失去承载力后形成的系统性吞噬。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>命是线性职责</strong>：命是以时间为轴的——你在这个阶段有这个阶段的责任，在那个阶段有那个阶段的任务。线性意味着可预期、有节奏、有顺序。完成一个任务，再进入下一个。</p>
+                <p><strong>线性职责的例子</strong>：小时候是学习，长大后是工作，中年是家庭，老年是健康。每个阶段的任务是相对清晰的，完成得好与坏，决定了下一阶段的起点。</p>
+                <p><strong>系统性吞噬</strong>：苦海是一个"面"，它不是一条线，而是一张网。当这张网向你收紧时，你发现四面八方都在出问题，它们互相强化、互相拖累。</p>
+                <p><strong>从线到面</strong>：通常的路径是——一个阶段的任务没完成，积累到下一个阶段变成更大的问题；多个维度同时出问题，它们互相恶化，最终形成无法逃脱的系统性困境。</p>
+            </div>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '针扎一下，叫"苦"。排山倒海，叫"苦海"。不是因为发生坏事，是因为你没有结构去接住坏事。')">📋</span>
+            <p class="message-quote">针扎一下，叫"苦"。<br>排山倒海，叫"苦海"。<br>不是因为发生坏事，<br>是因为你没有结构去接住坏事。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>针扎一下</strong>：这是单一事件的影响。你可以处理这个伤口，可以休息几天，可以寻求帮助。问题是有解的。</p>
+                <p><strong>排山倒海</strong>：当问题不是一件事，而是无数件事同时发生时、当一个问题还没解决下一问题就接踵而至时、当你发现无论怎么努力都跟不上问题的涌现速度时——这就进入了苦海模式。</p>
+                <p><strong>不是因为发生坏事</strong>：这个认知非常重要。同样发生坏事，为什么有人能扛过去，有人会被击垮？区别不在于坏事本身，在于"结构"。</p>
+                <p><strong>结构是什么</strong>：结构是你应对问题的系统——财务结构让你有钱应对危机，人际结构让你有人可以求助，能力结构让你有方法解决问题，心理结构让你有韧性承受压力。没有这些结构，任何坏事都会变成灭顶之灾。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 2: Life Stages -->
+    <section class="stages-section">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 02</div>
+            <h2 class="chapter-title">人生六阶段 · 六种命</h2>
+        </div>
+
+        <div class="stages-container">
+            <div class="stage-item">
+                <span class="stage-number">STAGE 01</span>
+                <div class="stage-content">
+                    <h4>为人子</h4>
+                    <p>懂得承担，不抱怨父母。这是人生第一个结构性能力的培养——你第一次学会接住现实。现实不是完美的，父母不是全能的，世界不是围绕你转的。接受这些，是后续所有能力的基础。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你会习惯性地抱怨外部环境，把所有问题归咎于"原生家庭"、"社会不公"，永远觉得自己是受害者。</p>
+                </div>
+            </div>
+
+            <div class="stage-item">
+                <span class="stage-number">STAGE 02</span>
+                <div class="stage-content">
+                    <h4>为学子</h4>
+                    <p>把学习变成能力、认知与信用。不是成绩，是"可交换价值"。学习的目的不是考试，而是获得可以在社会交换的技能、认知和社会认可。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你会发现毕业后自己除了文凭什么都没有——没有真正的能力，没有对社会运作的认知，没有积累任何信用。</p>
+                </div>
+            </div>
+
+            <div class="stage-item">
+                <span class="stage-number">STAGE 03</span>
+                <div class="stage-content">
+                    <h4>为职员</h4>
+                    <p>拿结果，不拿时间。你第一次把自己变成"职场"的"刚需"。公司需要的是你能解决问题的能力，不是你的出勤时间。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你会在职场中越来越边缘化。你可能很努力、很忠诚，但当公司需要"产出"时，你发现自己不是那个被选择的人。</p>
+                </div>
+            </div>
+
+            <div class="stage-item">
+                <span class="stage-number">STAGE 04</span>
+                <div class="stage-content">
+                    <h4>为领导</h4>
+                    <p>用结构带人，而不是用嘴带人。你第一次理解"人的成本"——每个人的时间、注意力、成长空间都是有成本的。领导的责任是让这些成本产生最大的产出。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你可能会成为一个"事必躬亲"的人，永远无法放大自己的价值，也永远无法培养出真正能接替你或与你协作的人。</p>
+                </div>
+            </div>
+
+            <div class="stage-item">
+                <span class="stage-number">STAGE 05</span>
+                <div class="stage-content">
+                    <h4>为爱人</h4>
+                    <p>给伴侣确定性，而非情绪。你第一次承接"别人的人生"。这意味着你的决策不再只影响你自己，还要考虑另一个人的期待、恐惧和未来。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你会把亲密关系当作情绪的宣泄口，而不是责任的承担所。最终你会发现，你既给不了对方确定性，也承担不了对方的期待。</p>
+                </div>
+            </div>
+
+            <div class="stage-item">
+                <span class="stage-number">STAGE 06</span>
+                <div class="stage-content">
+                    <h4>为父母</h4>
+                    <p>你成为孩子的世界底座。你第一次理解"命运可传递"——你的言行、你的选择、你的能力边界，都在潜移默化中塑造下一代的人生。</p>
+                    <p class="stage-insight">如果这个阶段没完成：你可能会把自己未完成的期望强加给孩子，或者在孩子最需要你的时候发现自己没有能力支撑。代际的困境会因此传递下去。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-card" style="margin-top: 48px;">
+            <p class="message-quote">了解人生不同阶段的关系与影响，<br>得以胜任人生不同阶段的不同角色。<br><br>任何一个角色没胜任，<br>人生就开始局部坍缩，<br>坍缩积累，就变成苦海。</p>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>角色链</strong>：人生六个阶段不是割裂的，而是环环相扣的。为人子的能力影响为学子，为学子的能力影响为职员......每一个阶段都是下一个阶段的基础。</p>
+                <p><strong>局部坍缩</strong>：一个角色没胜任，不会立刻崩溃。它表现为那个维度的虚弱——亲子关系紧张、职业发展瓶颈、财务状况紧绷。这种虚弱会逐渐扩散。</p>
+                <p><strong>坍缩的积累</strong>：每一个坍缩都会加重其他维度的负担。职场不顺影响家庭，家庭问题影响工作......当所有维度都在恶化时，就形成了系统性困境——苦海。</p>
+                <p><strong>预防 vs 治疗</strong>：最好的策略是在问题还小的时候处理它，而不是等到所有问题交织在一起时才发现已经无路可走。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 3: Suffering vs System -->
+    <section id="suffering">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 03</div>
+            <h2 class="chapter-title">苦与苦海</h2>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '冬天不是敌人，没有衣服的人才怕冬天。雨不是灾难，没有屋顶的人才会被淋透。爱不是骗局，只有没有自我边界的人才会被榨干。世界不针对你，苦只针对没有准备的人。')">📋</span>
+            <p class="message-quote">冬天不是敌人，没有衣服的人才怕冬天。<br>雨不是灾难，没有屋顶的人才会被淋透。<br>爱不是骗局，只有没有自我边界的人才会被榨干。<br><br>世界不针对你，苦只针对没有准备的人。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>冬天不是敌人</strong>：同样的冬天，有人觉得浪漫，有人觉得致命。区别不在于冬天，在于你有没有准备——衣服、暖气、热量。</p>
+                <p><strong>雨不是灾难</strong>：一场雨不会让一个社会崩溃，但如果一个社会没有排水系统、没有防灾准备，那灾难就来了。灾难不是雨，是"没有应对雨的能力"。</p>
+                <p><strong>爱不是骗局</strong>：这句话可能会引起争议，但仔细想想：一个人在一段关系中被"榨干"，真的全是对方的错吗？还是因为Ta没有设立边界、没有保留自我、没有识别对方的需求？</p>
+                <p><strong>世界不针对你</strong>：这是很重要的人生认知。宇宙是冷漠的，它不爱你也不恨你，它只是按照自己的规律运转。你的苦不是宇宙对你的惩罚，而是你的结构与宇宙规律碰撞的结果。</p>
+                <p><strong>苦只针对没有准备的人</strong>：这句话听起来很冷酷，但它是一个清醒的认知。有准备的人不是不会遇到问题，而是他们有能力接住问题、转化问题、从问题中学习。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 4: Collapse -->
+    <section id="collapse">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 04</div>
+            <h2 class="chapter-title">命的坍缩与海的形成</h2>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '你不储备学习能力，毕业后你靠打工 —— 这是第一次坍缩。你不储备职业能力，升迁窗口关上 —— 这是第二次坍缩。你不储备结构能力，创业失败、关系破裂、债务爆发 —— 这时你不是"失败"，你滑进了苦海。')">📋</span>
+            <p class="message-quote">你不储备学习能力，<br>毕业后你靠打工 —— 这是第一次坍缩。<br><br>你不储备职业能力，<br>升迁窗口关上 —— 这是第二次坍缩。<br><br>你不储备结构能力，<br>创业失败、关系破裂、债务爆发 ——<br<br>这时你不是"失败"，<br>你滑进了苦海。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>第一次坍缩：学习能力 → 打工</strong></p>
+                <ul>
+                    <li>学习能力不只在学校有用，它是一切能力的基础</li>
+                    <li>没有学习能力意味着你无法适应新环境、掌握新技能</li>
+                    <li>打工本身不是坏事，但"只能打工"意味着你的选择空间被大大压缩</li>
+                </ul>
+
+                <p><strong>第二次坍缩：职业能力 → 升迁无望</strong></p>
+                <ul>
+                    <li>职业能力是"把事情做成"的能力，不是"把事情做完"</li>
+                    <li>年轻时没有积累职业能力，到中年会发现自己的竞争力远不如年轻人</li>
+                    <li>升迁窗口关上不只是升不了职，而是你会被年轻人取代</li>
+                </ul>
+
+                <p><strong>第三次坍缩：结构能力 → 全面崩溃</strong></p>
+                <ul>
+                    <li>结构能力是更高维度的能力——管理时间、金钱、人际、情绪的能力</li>
+                    <li>没有结构能力意味着你无法同时处理多个维度的挑战</li>
+                    <li>创业失败 + 关系破裂 + 债务爆发——这三个同时发生时，任何一个都可能是压死骆驼的最后一根稻草</li>
+                </ul>
+
+                <p><strong>"失败" vs "苦海"</strong>：失败是一个事件，苦海是一种状态。失败可以爬起来，苦海让你连挣扎的力气都没有。</p>
+            </div>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '真正致命的，是"能力缺口 × 时间延迟"。')">📋</span>
+            <p class="message-quote">真正致命的，是"能力缺口 × 时间延迟"。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>能力缺口</strong>：你在某个维度上的能力不足以应对这个维度的挑战。这个缺口可能很小，小到你平时注意不到。</p>
+                <p><strong>时间延迟</strong>：能力缺口不会立刻显现后果。它会积累、会延迟、在你最脆弱的时候才爆发。</p>
+                <p><strong>× 的效果</strong>：缺口不大，但如果时间足够长，破坏力会指数级增长。一个小缺口×10年，可能变成无法弥补的大洞。</p>
+                <p><strong>举例</strong>：一个年轻人不善言辞，这个缺口在年轻时可能不明显（可以靠技术能力弥补）。但到了中年需要管理团队、需要对外沟通时，这个缺口就会被放大。如果他一直没有弥补，到40岁时会发现自己"卡住了"——上不去，也转不了型。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Powers Section -->
+    <section class="powers-section" id="powers">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 05</div>
+            <h2 class="chapter-title">苦海的四种底座能力</h2>
+        </div>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 48px; font-size: 16px;">
+            一个人会不会掉入苦海，就看这四条有没有
+        </p>
+
+        <div class="powers-grid">
+            <div class="power-card">
+                <div class="power-icon">🛡️</div>
+                <h4 class="power-title">防御</h4>
+                <p class="power-desc">抗风险的能力。让你在危机来临时不至于一败涂地。</p>
+                <div class="power-tags">
+                    <span class="tag">现金储备</span>
+                    <span class="tag">人脉网络</span>
+                    <span class="tag">专业壁垒</span>
+                    <span class="tag">契约保障</span>
+                    <span class="tag">位置优势</span>
+                </div>
+            </div>
+
+            <div class="power-card">
+                <div class="power-icon">⚔️</div>
+                <h4 class="power-title">攻坚</h4>
+                <p class="power-desc">破瓶颈的能力。让你在面对困难时有办法突破。</p>
+                <div class="power-tags">
+                    <span class="tag">作品成果</span>
+                    <span class="tag">解决能力</span>
+                    <span class="tag">信任积累</span>
+                    <span class="tag">资源整合</span>
+                </div>
+            </div>
+
+            <div class="power-card">
+                <div class="power-icon">📦</div>
+                <h4 class="power-title">沉淀</h4>
+                <p class="power-desc">把经历变资产的能力。让你每一次跌倒都不白跌。</p>
+                <div class="power-tags">
+                    <span class="tag">复盘习惯</span>
+                    <span class="tag">方法论</span>
+                    <span class="tag">思维模型</span>
+                    <span class="tag">知识体系</span>
+                </div>
+            </div>
+
+            <div class="power-card">
+                <div class="power-icon">🚀</div>
+                <h4 class="power-title">托举</h4>
+                <p class="power-desc">为未来提前准备的能力。让你在机会来临时能够抓住。</p>
+                <div class="power-tags">
+                    <span class="tag">资源储备</span>
+                    <span class="tag">平台搭建</span>
+                    <span class="tag">贵人培育</span>
+                    <span class="tag">系统建设</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-card" style="margin-top: 48px;">
+            <p class="message-quote">缺一个，是难。<br>缺两个，是苦。<br>三个都缺，就是苦海。</p>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>缺一个，是难</strong>：你有三个能力支撑，只有一个维度出问题，这不是绝境，是可以跨越的困难。难是暂时的。</p>
+                <p><strong>缺两个，是苦</strong>：两个维度同时出问题，它们会互相恶化。这时候你会感到压力巨大、疲惫不堪，但还保有翻盘的希望。</p>
+                <p><strong>三个都缺，就是苦海</strong>：当防御、攻坚、沉淀、托举四个能力中你有三个以上缺失时，你没有任何抓手来应对生活的挑战。这就是"苦海"——四面八方都在漏风，你不知道该堵哪里。</p>
+                <p><strong>四维一度理论</strong>：最好是在"难"的阶段就发现问题、补充能力。不要等到进入"苦海"才意识到——那时候翻身会非常困难。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 5: Nature of Life -->
+    <section id="nature">
+        <div class="chapter-header">
+            <div class="chapter-number">CHAPTER 06</div>
+            <h2 class="chapter-title">命的本质</h2>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '你不是被命运惩罚，你只是"没准备好承担你的人生角色"。命不是神秘，是阶段性的胜任力。苦海不是诅咒，是系统的回声。')">📋</span>
+            <p class="message-quote">你不是被命运惩罚，<br>你只是"没准备好承担你的人生角色"。<br><br>命不是神秘，是阶段性的胜任力。<br><br>苦海不是诅咒，是系统的回声。</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>不是被惩罚</strong>：受害者心态是苦海的温床。认为自己"不幸"会让你失去改变的动力。清醒的认识应该是：这是我的选择（或我的不选择）导致的结果。</p>
+                <p><strong>没准备好承担角色</strong>：每个阶段都有对应的角色要求。你没达到要求，不是因为你"命不好"，是因为你没有为这个角色做准备。</p>
+                <p><strong>命是胜任力</strong>：把命理解为"神秘力量"会让你陷入宿命论；把命理解为"胜任力"会让你有努力的方向。你命好不好，取决于你每个阶段的胜任力。</p>
+                <p><strong>苦海是系统的回声</strong>：系统不会因为你哭就放过你。它只是忠实地反馈你的投入（或不投入）。今天的苦海，是过去每一个"不作为"的回声。</p>
+            </div>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '命与阶段性规则（真正的痛从不突然）')">📋</span>
+            <p class="message-quote">命与阶段性规则<br>（真正的痛从不突然）</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>人生不是直线，是分段任务</strong>：每个阶段有每个阶段的规则。大学有大学的规则，职场有职场的规则，婚姻有婚姻的规则。用上一个阶段的逻辑去应对下一个阶段，往往会碰壁。</p>
+                <p><strong>命永远在阶段节点决定方向</strong>：人生的分水岭往往在阶段转换时出现——毕业时、跳槽时、结婚时、生子时、创业时。这些节点决定了你的下一个阶段往哪里走。</p>
+                <p><strong>不是今天发生坏事</strong>：真正的痛从来不是突然发生的。它是十年前、五年前、一年前的"因"在今天结的"果"。</p>
+                <p><strong>而是十年前你没准备好</strong>：今天面对的困境，很可能是十年前某个该做却没做决定的代价。认识这一点很痛苦，但很重要——它意味着你现在还有机会为十年后做准备。</p>
+                <p><strong>命不会在最有余力时审判你</strong>：命很狡猾，它会在你最脆弱的时候来算总账。所以要在有余力时做准备，而不是在已经掉入苦海时才后悔。</p>
+            </div>
+        </div>
+
+        <div class="message-card">
+            <span class="copy-btn" onclick="copyQuote(this, '命的升级路径')">📋</span>
+            <p class="message-quote">命的升级路径</p>
+            <div class="expand-hint">展开阐释</div>
+            <div class="expansion">
+                <h4>深入解析</h4>
+                <p><strong>命不是"发生在你身上"</strong>：被动地接受命运是下策。命应该是你主动去"成为"的东西。</p>
+                <p><strong>命是你正在"成为谁"</strong>：你的每一个选择、每一个行动、每一次努力，都在塑造你的命。命不是结果，是过程。</p>
+                <p><strong>如果不升级角色，命永远没有下一关</strong>：如果你一直用同一个版本的自己应对不同阶段的任务，你会发现越来越吃力。角色必须升级，命才能升级。</p>
+                <p><strong>人生每个阶段的角色能力，决定了你命运的带宽</strong>：带宽就是你的选择空间。你能扮演的角色越多，你的命就越宽；你能承担的责任越大，你的运就越好。</p>
+                <p><strong>当你无法胜任角色，命会收回贷款，叫"代价"</strong>：命借给你的能力（你的学历、你的经验、你的资源）是有代价的。当你无法偿还时，命会收回——表现为失败、困境、危机。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final Gift -->
+    <section class="footer-quote">
+        <p>"曾经我以为人是被事件打败。<br>后来我才懂：人只会被自己<br>'承载不了的命运'淹死。"</p>
+        <p class="note">
+            我不教任何人如何成功，<br>
+            我只把我走过的"地形"写下来。<br><br>
+            如果它能帮你避开一次溺水，<br>
+            那就是我给世界的礼物。
+        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>给世界的礼物 · 命与苦海</p>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Progress Bar & Nav
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / docHeight) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            const nav = document.getElementById('nav');
+            nav.classList.toggle('scrolled', scrollTop > 100);
+
+            const tocSidebar = document.getElementById('tocSidebar');
+            tocSidebar.classList.toggle('visible', scrollTop > 300);
+
+            const backToTop = document.querySelector('.back-to-top');
+            backToTop.classList.toggle('visible', scrollTop > 500);
+        });
+
+        // Scroll Reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.chapter-header, .message-card, .contrast-card, .power-card, .stage-item, .footer-quote p, .footer-quote .note, .footer').forEach(el => observer.observe(el));
+
+        // TOC Click
+        document.querySelectorAll('.toc-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const target = document.querySelector(this.dataset.target);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Card Expand
+        document.querySelectorAll('.message-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (e.target.classList.contains('copy-btn')) return;
+                this.classList.toggle('expanded');
+            });
+        });
+
+        // TOC Active on Scroll
+        const sections = document.querySelectorAll('section[id]');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.toc-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.target === '#' + current);
+            });
+        });
+
+        // Copy Quote with Toast
+        function copyQuote(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const original = btn.innerHTML;
+                btn.innerHTML = '✓';
+                btn.classList.add('copied');
+                showToast('已复制到剪贴板');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('visible');
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
